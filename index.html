@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa do Campus – UNIPÊ</title><style>html,body{margin:0;height:100%;background:#dfe6ea}
+#mapa{width:100vw;height:100vh;display:block;cursor:grab;touch-action:none;user-select:none}
+#mapa.arrastando{cursor:grabbing}
+#mapa .predio-parte{transition:filter .15s}
+#mapa .predio-parte.ativo{filter:brightness(1.12) drop-shadow(0 0 1.5px #fff)}</style></head><body>
+<svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
+<script src="campus-data.js"></script>
+<script src="campus-map.js"></script>
+<script>
+const svg=document.getElementById('mapa');
+CampusMap.render(svg, CAMPUS_DATA, { rotacao: 22 });
+// destaque do prédio inteiro ao passar o mouse (todas as partes com o mesmo data-id)
+svg.addEventListener('pointerover', e => {
+  const p = e.target.closest('.predio-parte'); if (!p) return;
+  svg.querySelectorAll(`.predio-parte[data-id="${p.dataset.id}"]`).forEach(n => n.classList.add('ativo'));
+  svg.setAttribute('aria-label', p.dataset.nome);
+});
+svg.addEventListener('pointerout', e => {
+  const p = e.target.closest('.predio-parte'); if (!p) return;
+  svg.querySelectorAll('.predio-parte.ativo').forEach(n => n.classList.remove('ativo'));
+});
+</script>
+</body></html>
