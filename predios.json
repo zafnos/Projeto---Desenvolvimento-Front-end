@@ -1,0 +1,145 @@
+[
+ {
+  "id": "laranja",
+  "nome": "Blocos A, B e C",
+  "quadra": "laranja",
+  "inclui": [
+   "Tapiocabana",
+   "Espaço Vida Saudável (EVS)"
+  ]
+ },
+ {
+  "id": "vermelha",
+  "nome": "Blocos D, E e F",
+  "quadra": "vermelha",
+  "inclui": []
+ },
+ {
+  "id": "psicologia",
+  "nome": "Psicologia",
+  "quadra": "vermelha",
+  "inclui": []
+ },
+ {
+  "id": "ciano",
+  "nome": "Blocos G, H e I – Clínica-Escola de Fisioterapia",
+  "quadra": "ciano",
+  "inclui": []
+ },
+ {
+  "id": "eva",
+  "nome": "Espaço de Vivência Acadêmica (EVA)",
+  "quadra": "azul",
+  "inclui": [
+   "Diretório Acadêmico de Enfermagem"
+  ]
+ },
+ {
+  "id": "biblioteca",
+  "nome": "Biblioteca",
+  "quadra": "azul",
+  "inclui": []
+ },
+ {
+  "id": "rh",
+  "nome": "Recursos Humanos",
+  "quadra": "esmeralda",
+  "inclui": []
+ },
+ {
+  "id": "eng-civil",
+  "nome": "Complexo Laboratorial de Engenharia Civil",
+  "quadra": "esmeralda",
+  "inclui": []
+ },
+ {
+  "id": "medicina",
+  "nome": "Medicina (Bloco T) e Auditório",
+  "quadra": "verde",
+  "inclui": [
+   "Auditório UNIPÊ",
+   "Bloco T – Medicina"
+  ]
+ },
+ {
+  "id": "reitoria",
+  "nome": "Reitoria",
+  "quadra": "azul",
+  "inclui": []
+ },
+ {
+  "id": "museu",
+  "nome": "Museu",
+  "quadra": "azul",
+  "inclui": []
+ },
+ {
+  "id": "odontologia",
+  "nome": "Clínica-Escola e Bloco de Odontologia",
+  "quadra": "bege",
+  "inclui": []
+ },
+ {
+  "id": "odonto-anexos",
+  "nome": "Odontologia – anexos",
+  "quadra": "bege",
+  "inclui": []
+ },
+ {
+  "id": "ginasio",
+  "nome": "Ginásio (Quadra Amarela)",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "pos",
+  "nome": "Pós-graduação",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "ed-fisica",
+  "nome": "Educação Física",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "ct",
+  "nome": "CT – Complexo de Tecnologia",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "apoio-piscina",
+  "nome": "Apoio da piscina",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "apoio-quadra",
+  "nome": "Apoio da quadra",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "apoio-sul",
+  "nome": "Edificação de apoio",
+  "quadra": "amarela",
+  "inclui": []
+ },
+ {
+  "id": "entrada",
+  "nome": "Entrada principal",
+  "quadra": "amarela",
+  "inclui": [
+   "Pórtico de Saída",
+   "Pórtico de Entrada"
+  ]
+ },
+ {
+  "id": "passarela",
+  "nome": "Passarela elevada",
+  "quadra": "amarela",
+  "inclui": []
+ }
+]
