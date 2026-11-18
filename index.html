@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa do Campus – UNIPÊ</title><style>html,body{margin:0;height:100%;background:#dfe6ea}
-#mapa{width:100vw;height:100vh;display:block;cursor:grab;touch-action:none;user-select:none}
-#mapa.arrastando{cursor:grabbing}
-/* cada prédio tem UM elemento clicável: <g class="predio" id="predio-biblioteca" data-id data-nome ...> */
-#mapa .predio{cursor:pointer;outline:none}
-#mapa .hit{fill:transparent;stroke:none}
-#mapa .predio:hover .hit,#mapa .predio:focus-visible .hit{fill:rgba(255,255,255,.28);stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
-#mapa .predio.ativo .hit{fill:rgba(255,226,120,.38);stroke:#fff;stroke-width:1.6;stroke-linejoin:round}</style></head><body>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa do Campus – UNIPÊ</title><link rel="stylesheet" href="style.css"></head><body>
+<section class="pesquisa" aria-label="Pesquisa de prédios">
+  <label for="busca-predio">Buscar prédio</label>
+  <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off" aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
+  <ul id="resultados-predios" class="resultados" aria-label="Resultados da pesquisa"></ul>
+  <p id="estado-pesquisa" class="estado" role="status"></p>
+</section>
 <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
 <script src="campus-data.js"></script>
 <script src="campus-map.js"></script>
@@ -23,5 +22,40 @@ const mapa = CampusMap.render(svg, CAMPUS_DATA, {
   onHover: predio => { svg.setAttribute('aria-label', predio ? predio.nome : 'Mapa ilustrado do campus UNIPÊ'); },
 });
 window.mapa = mapa; // para testar no console: mapa.predios, mapa.focar('biblioteca'), mapa.selecionar('reitoria')
+const busca = document.getElementById('busca-predio');
+const resultados = document.getElementById('resultados-predios');
+const estado = document.getElementById('estado-pesquisa');
+const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+
+busca.addEventListener('input', () => {
+  const termo = normalizar(busca.value);
+  resultados.replaceChildren();
+  estado.textContent = '';
+  if (!termo) return;
+  const encontrados = mapa.predios.filter(predio => normalizar(predio.nome).includes(termo));
+  encontrados.forEach(predio => {
+    const item = document.createElement('li');
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.textContent = predio.nome;
+    botao.addEventListener('click', () => {
+      mapa.selecionar(predio.id);
+      mapa.focar(predio.id, { zoom: 3 });
+      busca.value = predio.nome;
+      resultados.replaceChildren();
+      estado.textContent = `${predio.nome} selecionado no mapa.`;
+      busca.focus();
+    });
+    item.appendChild(botao);
+    resultados.appendChild(item);
+  });
+  estado.textContent = encontrados.length ? `${encontrados.length} resultado(s) encontrado(s).` : 'Nenhum prédio encontrado.';
+});
+busca.addEventListener('keydown', evento => {
+  if (evento.key === 'Escape') {
+    resultados.replaceChildren();
+    estado.textContent = '';
+  }
+});
 </script>
 </body></html>
