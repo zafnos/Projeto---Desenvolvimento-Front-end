@@ -365,6 +365,10 @@
         + `</g>`;
     }).join('');
 
+    const totemVoceSvg = `<g class="totem-voce" id="totem-voce" transform="translate(${fx(vocePt[0])},${fx(vocePt[1])})">`
+
+    out.push(`<g class="camada-rotulos" id="camada-rotulos">${rotulosSvg}${totemVoceSvg}</g>`);
+
     svg.setAttribute('viewBox', vb.map(fx).join(' '));
     svg.innerHTML = out.join('');
     const view = panZoom(svg, vb, o.panZoom, o.onZoom);
