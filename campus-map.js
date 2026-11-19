@@ -23,9 +23,21 @@
     margem: 60,           // margem em volta do limite do campus (unidades de tela)
     neblina: true,        // esmaece o entorno, como no mapa da SAU
     panZoom: true,        // arrastar / roda do mouse / pinça
-    onClick: null,        // (predio|null, evento) => {}  — clique em um prédio (null = clicou no fundo)
-    onHover: null,        // (predio|null, evento) => {}  — mouse entrou/saiu de um prédio
+    onClick: null,
+    onHover: null,
+    onZoom: null,
     seed: 11,
+  };
+
+  const CORES_QUADRAS = {
+    laranja: '#f37021',
+    vermelha: '#e31b23',
+    ciano: '#009fe3',
+    azul: '#003882',
+    verde: '#008d36',
+    esmeralda: '#00a88f',
+    bege: '#c59b47',
+    amarela: '#d9a400',
   };
 
   const PAL = {
@@ -119,15 +131,15 @@
       const HP = 8.5 * UPM * hz;
       d += `<g id="cm-palm"><path d="M0 0Q1 ${fx(-HP / 2)} 0.6 ${fx(-HP)}" stroke="#8a7350" stroke-width="0.8" fill="none"/><g transform="translate(0.6 ${fx(-HP)})">`
         + [0, 52, 104, 156, 208, 260, 312].map(a => `<path d="M0 0Q${fx(2.2 * Math.cos(a * Math.PI / 180))} ${fx(2.2 * Math.sin(a * Math.PI / 180) * 0.6 - 1.2)} ${fx(4.2 * Math.cos(a * Math.PI / 180))} ${fx(4.2 * Math.sin(a * Math.PI / 180) * 0.6 + 0.9)}" stroke="${a % 104 ? '#3f7a32' : '#5d9a3e'}" stroke-width="1.15" fill="none" stroke-linecap="round"/>`).join('')
-        + `<circle r="0.7" fill="#6b5a3a"/></g></g></defs>`;
-      return d;
+        + `<circle r="0.7" fill="#6b5a3a"/></g></g>`;
+      return d + [...modelosCarro.values()].join('') + '</defs>';
     };
     const defsIdx = out.length; out.push(''); // <defs> é preenchido depois que as árvores são conhecidas
     out.push(bigRect(`fill="${PAL.neblina}"`));
 
     // ---------- CHÃO (desenhado em coordenadas de planta com uma única matriz) ----------
     const W = data.meta.width, H = data.meta.height, EXT = data.meta.ext || 0;
-    const g = [], carBuckets = {}, vidros = [];
+    const g = [], carros = [], modelosCarro = new Map();
     g.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="${PAL.grama}"/>`);
     // entorno a leste: areal com trilhas e arbustos (como na foto de satélite)
     g.push(`<rect x="${W - 3}" y="-200" width="${EXT + 500}" height="${H + 400}" fill="${PAL.areia2}"/>`);
@@ -175,18 +187,30 @@
     g.push(`<path d="${lanePath(6)}" stroke="#f2c14e" stroke-width="0.4" stroke-dasharray="3 3" fill="none"/>`);
     g.push(`<path d="${[15.5, 36, 41, 64.5].map(lanePath).join('')}" stroke="#eceae4" stroke-width="0.45" fill="none"/>`);
     const rodAng = Math.atan(RD.inclinacao) * 180 / Math.PI;
-    for (const off of [3.5, 8.5, 19, 26, 33, 44, 51, 58]) {
-      for (let t = X0 + rand() * 30; t < X1; t += 12 + rand() * 38) g.push(car(t, ry(t, off), rodAng, rand));
+    for (const [faixas, sentido] of [[[3.5], 0], [[8.5, 19, 26, 33], 180], [[44, 51, 58], 0]]) {
+      for (const off of faixas) {
+        for (let t = X0 + rand() * 30; t < X1; t += 12 + rand() * 38) {
+          adicionarCarro(t, ry(t, off), rodAng + sentido, rand);
+        }
+      }
     }
-    // lago
+    // lago e rotatórias
     if (data.lago) g.push(`<polygon points="${pts(data.lago)}" fill="#4e8fa0" stroke="#7fae6a" stroke-width="2.2" stroke-linejoin="round"/><polygon points="${pts(data.lago)}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="0.5" transform="translate(-1.5,-1.5)"/>`);
+    for (const rot of (data.rotatorias || [])) {
+      g.push(`<circle cx="${fx(rot.cx)}" cy="${fx(rot.cy)}" r="${fx(rot.r + 1.8)}" fill="none" stroke="${PAL.meioFio}" stroke-width="1.2"/>`
+        + `<circle cx="${fx(rot.cx)}" cy="${fx(rot.cy)}" r="${fx(rot.r)}" fill="${PAL.grama}" stroke="${PAL.pavBorda}" stroke-width="0.6"/>`
+        + `<circle cx="${fx(rot.cx)}" cy="${fx(rot.cy)}" r="${fx(rot.r * 0.55)}" fill="${PAL.gramaClara}"/>`);
+    }
     // superfícies esportivas
     for (const s of data.superficies) g.push(superficie(s));
     // estacionamentos com carros
     for (const p of data.estacionamentos) g.push(estacionamento(p, rand));
-    for (const c of Object.keys(carBuckets)) g.push(`<path d="${carBuckets[c].join('')}" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width="0.25" stroke-linejoin="round"/>`);
-    g.push(`<path d="${vidros.join('')}" fill="rgba(40,55,70,.55)"/>`);
     out.push(`<g class="chao" transform="${groundMatrix}">${g.join('')}</g>`);
+    carros.sort((a, b) => a.profundidade - b.profundidade);
+    const carrosSvg = carros.map(carro =>
+      `<use href="#${carro.id}" x="${fx(carro.x)}" y="${fx(carro.y)}" style="--pintura:${carro.cor}"/>`
+    ).join('');
+    out.push(`<g class="carros" aria-hidden="true" pointer-events="none">${carrosSvg}</g>`);
 
     // ---------- OBJETOS 3D ----------
     const partsU = [], shB = [];
@@ -295,20 +319,64 @@
       out.push(`<g class="neblina" fill="${PAL.neblina}" fill-rule="evenodd" pointer-events="none">${faixas(1, 7, 14, 0.55, 12)}${faixas(1.5, 0, 45, 0.95, 20)}</g>`);
     }
 
-    // ---------- camada de cliques: UM elemento por prédio, com nome ----------
+    // ---------- camada de cliques, rotas e rótulos ----------
     const predios = data.predios.map(b => {
       const partes = partsU.filter(p => p.dono === b.id);
       const sil = partes.map(p => hull(p.foot.map(q => S(q[0], q[1], 0)).concat(p.foot.map(q => S(q[0], q[1], p.htop)))));
       const todos = [].concat(...sil);
       const x0 = Math.min(...todos.map(p => p[0])), x1 = Math.max(...todos.map(p => p[0]));
       const y0 = Math.min(...todos.map(p => p[1])), y1 = Math.max(...todos.map(p => p[1]));
-      return { id: b.id, nome: b.nome, quadra: b.quadra, inclui: b.inclui || [], centro: [fx((x0 + x1) / 2), fx((y0 + y1) / 2)], bbox: [fx(x0), fx(y0), fx(x1 - x0), fx(y1 - y0)], d: sil.map(h => 'M' + h.map(p => fx(p[0]) + ' ' + fx(p[1])).join('L') + 'Z').join('') };
+      const cxP = b.parts.reduce((s, p) => s + p.cx, 0) / b.parts.length;
+      const cyP = b.parts.reduce((s, p) => s + p.cy, 0) / b.parts.length;
+      return {
+        ...b,
+        inclui: b.inclui || [],
+        planta: [fx(cxP), fx(cyP)],
+        centro: [fx((x0 + x1) / 2), fx((y0 + y1) / 2)],
+        bbox: [fx(x0), fx(y0), fx(x1 - x0), fx(y1 - y0)],
+        corQuadra: CORES_QUADRAS[b.quadra] || '#003882',
+        d: sil.map(h => 'M' + h.map(p => fx(p[0]) + ' ' + fx(p[1])).join('L') + 'Z').join('')
+      };
     });
-    out.push(`<g class="camada-predios">${predios.map(p => `<g class="predio" id="predio-${esc(p.id)}" data-id="${esc(p.id)}" data-nome="${esc(p.nome)}" data-quadra="${esc(p.quadra)}" tabindex="0" role="button" aria-label="${esc(p.nome)}"><path class="hit" d="${p.d}"/></g>`).join('')}</g>`);
+
+    out.push(`<g class="camada-predios">${predios.map(p => {
+      const id = esc(p.id);
+      const [x, y, w, h] = p.bbox;
+      // A máscara apaga o traço dentro da união dos blocos.
+      return `<g class="predio" id="predio-${id}" data-id="${id}" data-nome="${esc(p.nome)}" data-quadra="${esc(p.quadra)}" style="--cor-quadra:${p.corQuadra}" tabindex="0" role="button" aria-label="${esc(p.nome)}">
+        <mask id="mascara-${id}" maskUnits="userSpaceOnUse" x="${x - 4}" y="${y - 4}" width="${w + 8}" height="${h + 8}">
+          <rect x="${x - 4}" y="${y - 4}" width="${w + 8}" height="${h + 8}" fill="white"/>
+          <path d="${p.d}" fill="black" fill-rule="nonzero"/>
+        </mask>
+        <path class="hit" d="${p.d}" fill-rule="nonzero"/>
+        <path class="contorno" d="${p.d}" mask="url(#mascara-${id})" aria-hidden="true"/>
+      </g>`;
+    }).join('')}</g>`);
+    out.push(`<g class="camada-rotas" id="camada-rotas" pointer-events="none"></g>`);
+
+    const vocePt = P(348, 352, 2);
+    const rotulosSvg = predios.filter(p => !['apoio-quadra', 'apoio-sul', 'passarela'].includes(p.id)).map(p => {
+      const txt = p.sigla || p.id.toUpperCase();
+      const w = Math.max(22, txt.length * 4.7 + 9);
+      const [cx0, cy0] = p.centro;
+      return `<g class="rotulo-predio" data-id="${esc(p.id)}" data-quadra="${esc(p.quadra)}" transform="translate(${fx(cx0)},${fx(cy0 - 4)})">`
+        + `<rect x="${fx(-w / 2)}" y="-7.5" width="${fx(w)}" height="13" rx="6.5" fill="${p.corQuadra}" stroke="#ffffff" stroke-width="1.2"/>`
+        + `<text x="0" y="1.5" text-anchor="middle" fill="#ffffff" font-size="6.4" font-weight="700" font-family="Public Sans, system-ui, sans-serif">${esc(txt)}</text>`
+        + `</g>`;
+    }).join('');
+
+    const totemVoceSvg = `<g class="totem-voce" id="totem-voce" transform="translate(${fx(vocePt[0])},${fx(vocePt[1])})">`
+      + `<circle cx="0" cy="0" r="8" fill="rgba(227,27,35,0.22)"/>`
+      + `<circle cx="0" cy="0" r="3.2" fill="#e31b23" stroke="#fff" stroke-width="1.2"/>`
+      + `<g transform="translate(0,-12)"><rect x="-18" y="-8" width="36" height="14" rx="4" fill="#111827" stroke="#fff" stroke-width="1.1"/>`
+      + `<path d="M-3 6L0 9.5L3 6Z" fill="#111827"/>`
+      + `<text x="0" y="1.5" text-anchor="middle" fill="#ffffff" font-size="7.2" font-weight="800" font-family="Public Sans, system-ui, sans-serif">Você</text></g></g>`;
+
+    out.push(`<g class="camada-rotulos" id="camada-rotulos">${rotulosSvg}${totemVoceSvg}</g>`);
 
     svg.setAttribute('viewBox', vb.map(fx).join(' '));
     svg.innerHTML = out.join('');
-    const view = panZoom(svg, vb, o.panZoom);
+    const view = panZoom(svg, vb, o.panZoom, o.onZoom);
     const geo = data.meta.geo;
     const fromLatLng = (lat, lng, z = 0) => {
       const a = geo.ang * Math.PI / 180, c0 = Math.cos(-geo.lat * Math.PI / 180);
@@ -317,21 +385,87 @@
       return P(geo.cx + dx, geo.cy - dy, z);
     };
     const n0 = fromLatLng(geo.lat, geo.lng), n1 = fromLatLng(geo.lat + 0.0005, geo.lng);
-    const norte = Math.atan2(n1[0] - n0[0], -(n1[1] - n0[1])) * 180 / Math.PI; // graus, horário a partir do "para cima" da tela
-    // ---------- API ----------
-    const porId = new Map(predios.map(p => { p.el = svg.getElementById ? svg.getElementById('predio-' + p.id) : svg.querySelector('#predio-' + CSS.escape(p.id)); delete p.d; return [p.id, p]; }));
+    const norte = Math.atan2(n1[0] - n0[0], -(n1[1] - n0[1])) * 180 / Math.PI;
+
+    const porId = new Map(predios.map(p => { p.el = svg.querySelector('#predio-' + CSS.escape(p.id)); delete p.d; return [p.id, p]; }));
     let sel = null, hover = null;
-    const doEl = e => { const g = e.target.closest && e.target.closest('.predio'); return g ? porId.get(g.dataset.id) : null; };
+    const doEl = e => {
+      const g = e.target.closest && (e.target.closest('.predio') || e.target.closest('.rotulo-predio'));
+      return g ? porId.get(g.dataset.id) : null;
+    };
+    const camadaRotas = svg.querySelector('#camada-rotas');
+
     const api = {
-      svg, viewBox: vb, project: P, fromLatLng, norte,
+      svg, viewBox: vb, project: P, fromLatLng, norte, CORES_QUADRAS,
       pontos: (data.pontos || []).map(p => ({ ...p, tela: P(p.xy[0], p.xy[1], 0) })),
       predios,
       predio: id => porId.get(id) || null,
       get selecionado() { return sel; },
-      selecionar(id) { const p = id && (porId.get(id) || null); if (sel) sel.el.classList.remove('ativo'); sel = p; if (p) p.el.classList.add('ativo'); return p; },
-      limparSelecao() { return api.selecionar(null); },
-      // centraliza (com animação) em um prédio: zoom = 1 é o mapa inteiro, 3 é bem de perto
-      focar(id, op = {}) { const p = porId.get(id); if (!p) return null; view.focar(p.centro[0], p.centro[1], vb[2] / (op.zoom || 3), op.duracao); return p; },
+      selecionar(id) {
+        const p = id && (porId.get(id) || null);
+        if (sel) sel.el.classList.remove('ativo');
+        svg.querySelectorAll('.rotulo-predio.ativo').forEach(el => el.classList.remove('ativo'));
+        sel = p;
+        if (p) {
+          p.el.classList.add('ativo');
+          const rot = svg.querySelector(`.rotulo-predio[data-id="${CSS.escape(p.id)}"]`);
+          if (rot) rot.classList.add('ativo');
+        }
+        return p;
+      },
+      limparSelecao() { api.limparRota(); return api.selecionar(null); },
+      focar(id, op = {}) {
+        const p = porId.get(id);
+        if (!p) return null;
+        view.focar(p.centro[0], p.centro[1], vb[2] / (op.zoom || 2.8), op.duracao);
+        return p;
+      },
+      focarPonto(xy, zoom = 2.8, duracao = 550) {
+        const [tx, ty] = P(xy[0], xy[1], 0);
+        view.focar(tx, ty, vb[2] / zoom, duracao);
+      },
+      filtrarQuadra(quadra) {
+        svg.dataset.filtroQuadra = quadra || '';
+        predios.forEach(p => {
+          const match = !quadra || p.quadra === quadra;
+          p.el.classList.toggle('destacado-quadra', Boolean(quadra && match));
+          p.el.classList.toggle('esmaecido', Boolean(quadra && !match));
+        });
+        svg.querySelectorAll('.rotulo-predio').forEach(el => {
+          const match = !quadra || el.dataset.quadra === quadra;
+          el.classList.toggle('esmaecido', Boolean(quadra && !match));
+        });
+      },
+      setModoQuadras(ativo) {
+        svg.classList.toggle('modo-quadras', Boolean(ativo));
+      },
+      setMostrarRotulos(ativo) {
+        svg.classList.toggle('ocultar-rotulos', !ativo);
+      },
+      tracarRota(id) {
+        const p = porId.get(id);
+        if (!p || !camadaRotas) return null;
+        const origemPlanta = [348, 352];
+        const destPlanta = p.planta;
+        const distUnidades = Math.hypot(destPlanta[0] - origemPlanta[0], destPlanta[1] - origemPlanta[1]);
+        const metros = Math.max(25, Math.round((distUnidades / UPM) * 1.18));
+        const minutos = Math.max(1, Math.round(metros / 72));
+        const p0 = vocePt;
+        const p2 = p.centro;
+        const midPlanta = [(origemPlanta[0] + destPlanta[0]) / 2, (origemPlanta[1] + destPlanta[1]) / 2];
+        const p1 = P(midPlanta[0], origemPlanta[1] * 0.65 + destPlanta[1] * 0.35, 1);
+        camadaRotas.innerHTML = `<path class="rota-sombra" d="M${fx(p0[0])} ${fx(p0[1])} Q${fx(p1[0])} ${fx(p1[1])} ${fx(p2[0])} ${fx(p2[1])}" fill="none" stroke="rgba(15,23,42,0.35)" stroke-width="4.2" stroke-linecap="round"/>`
+          + `<path class="rota-linha" d="M${fx(p0[0])} ${fx(p0[1])} Q${fx(p1[0])} ${fx(p1[1])} ${fx(p2[0])} ${fx(p2[1])}" fill="none" stroke="${p.corQuadra}" stroke-width="2.6" stroke-dasharray="5 4" stroke-linecap="round"/>`
+          + `<circle cx="${fx(p2[0])}" cy="${fx(p2[1])}" r="4.5" fill="${p.corQuadra}" stroke="#fff" stroke-width="1.5"/>`;
+        return { metros, minutos };
+      },
+      limparRota() {
+        if (camadaRotas) camadaRotas.innerHTML = '';
+      },
+      zoomIn() { view.zoomCentro(0.75); },
+      zoomOut() { view.zoomCentro(1.33); },
+      setZoom(nivel) { view.setNivel(nivel); },
+      getZoom() { return view.getNivel(); },
       resetar() { view.resetar(); },
     };
     svg.addEventListener('click', e => {
@@ -359,13 +493,59 @@
       return best;
     }
 
-    // carros: só acumula; depois sai um <path> por cor (em vez de ~700 grupos)
-    function car(x, y, ang, rnd) {
-      const c = CARROS[Math.floor(rnd() * CARROS.length)], a = ang * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a);
-      const q = (u, v) => fx(x + u * ux - v * uy) + ' ' + fx(y + u * uy + v * ux);
-      (carBuckets[c] = carBuckets[c] || []).push(`M${q(-3, -1.25)}L${q(3, -1.25)}L${q(3, 1.25)}L${q(-3, 1.25)}Z`);
-      vidros.push(`M${q(-1.2, -0.95)}L${q(1.4, -0.95)}L${q(1.4, 0.95)}L${q(-1.2, 0.95)}Z`);
-      return '';
+    function adicionarCarro(x, y, ang, rnd) {
+      const cor = CARROS[Math.floor(rnd() * CARROS.length)];
+      const id = 'cm-carro-' + fx3(((ang % 360) + 360) % 360);
+      // Reaproveita o desenho para todos os carros na mesma direção.
+      if (!modelosCarro.has(id)) modelosCarro.set(id, modeloCarro(id, ang));
+      const [gx, gy] = R(x, y);
+      const [sx, sy] = S(gx, gy);
+      carros.push({ id, x: sx, y: sy, profundidade: gy, cor });
+    }
+
+    function modeloCarro(id, ang) {
+      const a = (ang + o.rotacao) * Math.PI / 180;
+      const u = Math.cos(a), v = Math.sin(a);
+      const projetar = ([x, y, z]) => S(x * u - y * v, x * v + y * u, z);
+      const poligono = (pontos, cor) => `<polygon points="${pts(pontos.map(projetar))}" fill="${cor}"/>`;
+      const pintura = 'var(--pintura)';
+      const planta = [[-3, -0.88], [-2.65, -1.25], [2.58, -1.25], [3, -0.83],
+        [3, 0.83], [2.58, 1.25], [-2.65, 1.25], [-3, 0.88]];
+      const base = planta.map(([x, y]) => [x, y, 0.24]);
+      const carroceria = planta.map(([x, y]) => [x, y, 0.76]);
+      const janelas = [[-1.95, -1.04, 0.76], [1.58, -1.04, 0.76], [1.58, 1.04, 0.76], [-1.95, 1.04, 0.76]];
+      const teto = [[-1.26, -0.77, 1.58], [0.76, -0.77, 1.58], [0.76, 0.77, 1.58], [-1.26, 0.77, 1.58]];
+      const facesLaterais = (baixo, alto, cor) => baixo.map((p, i) => {
+        const j = (i + 1) % baixo.length, q = baixo[j];
+        const dx = q[0] - p[0], dy = q[1] - p[1];
+        const normal = [(dy * u + dx * v), (dy * v - dx * u)];
+        if (normal[1] <= 0) return '';
+        const luz = Math.max(0, (normal[0] * LUZ[0] + normal[1] * LUZ[1]) / Math.hypot(dx, dy));
+        return poligono([p, q, alto[j], alto[i]], cor(luz));
+      }).join('');
+
+      const sombra = planta.map(([x, y]) => {
+        const [sx, sy] = projetar([x, y, 0]);
+        return [sx + SOMB[0] * 0.85, sy + SOMB[1] * k * 0.85];
+      });
+      let desenho = `<polygon points="${pts(sombra)}" fill="#26352d" opacity="0.27"/>`;
+      const lado = u >= 0 ? 1.25 : -1.25;
+      const roda = [[-0.39, 0.16], [-0.23, 0.02], [0.23, 0.02], [0.39, 0.16], [0.33, 0.46], [-0.33, 0.46]];
+      for (const x of [-1.78, 1.78]) {
+        desenho += poligono(roda.map(([dx, z]) => [x + dx, lado, z]), '#23282d');
+      }
+      desenho += facesLaterais(base, carroceria, luz => `color-mix(in srgb, ${pintura} ${60 + 38 * luz}%, #202733)`);
+      desenho += poligono(carroceria, pintura);
+      desenho += facesLaterais(janelas, teto, luz => rgb([94, 118, 139], 0.69 + 0.88 * luz));
+      desenho += poligono(teto, `color-mix(in srgb, ${pintura} 80%, #fff)`);
+
+      for (const y of [-0.74, 0.74]) {
+        desenho += poligono([[2.56, y - 0.24, 0.77], [2.84, y - 0.18, 0.77],
+          [2.84, y + 0.18, 0.77], [2.56, y + 0.24, 0.77]], '#fff2c2');
+        desenho += poligono([[-2.69, y - 0.23, 0.77], [-2.43, y - 0.23, 0.77],
+          [-2.43, y + 0.23, 0.77], [-2.69, y + 0.23, 0.77]], '#cd4c45');
+      }
+      return `<g id="${id}">${desenho}</g>`;
     }
 
     function rectCorners(p, grow = 0) {
@@ -436,19 +616,18 @@
       const loc = poly.map(q => [(q[0] - c0[0]) * ux + (q[1] - c0[1]) * uy, (q[0] - c0[0]) * vx + (q[1] - c0[1]) * vy]);
       const mnU = Math.min(...loc.map(q => q[0])), mxU = Math.max(...loc.map(q => q[0]));
       const mnV = Math.min(...loc.map(q => q[1])), mxV = Math.max(...loc.map(q => q[1]));
-      let s = `<polygon points="${pts(poly)}" fill="#cfcac0"/>`;
-      let lines = '', cars = '';
+      let lines = '';
       for (let v = mnV + 7; v < mxV - 5; v += 19) {
         for (const dv of [-3.2, 3.2]) {
           for (let u = mnU + 3; u < mxU - 3; u += 3.6) {
             const X = c0[0] + u * ux + (v + dv) * vx, Y = c0[1] + u * uy + (v + dv) * vy;
             if (!inPoly(X, Y, poly)) continue;
             lines += `M${fx(X + 1.8 * ux - 3 * dv / 3.2 * vx)} ${fx(Y + 1.8 * uy - 3 * dv / 3.2 * vy)}l${fx(vx * dv / 3.2 * 3)} ${fx(vy * dv / 3.2 * 3)}`;
-            if (rnd() < 0.55) cars += car(X, Y, p.rows_ang + 90, rnd);
+            if (rnd() < 0.55) adicionarCarro(X, Y, p.rows_ang + (dv < 0 ? 90 : -90), rnd);
           }
         }
       }
-      return s + `<path d="${lines}" stroke="#f2efe8" stroke-width="0.35" fill="none"/>` + cars;
+      return `<polygon points="${pts(poly)}" fill="#cfcac0"/><path d="${lines}" stroke="#f2efe8" stroke-width="0.35" fill="none"/>`;
     }
 
     // ---------- prédios ----------
@@ -799,30 +978,33 @@
   // ---------- arrastar / zoom (sem nenhum controle visível) ----------
   // Durante o gesto o SVG NÃO é redesenhado: só aplicamos um CSS transform (a GPU move a imagem pronta).
   // Quando o gesto para (~150 ms), gravamos o viewBox novo e o SVG é redesenhado uma única vez, nítido.
-  function panZoom(svg, vb0, ativo) {
+  function panZoom(svg, vb0, ativo, onZoom) {
     let vb = vb0.slice(), alvo = vb0.slice(), rect = null, timer = 0, raf = 0, anim = 0, arrastou = false;
     const wrap = svg.parentNode;
-    if (ativo === false) return { arrastou: () => false, resetar() {}, focar(x, y, w) { const h = w * vb0[3] / vb0[2]; svg.setAttribute('viewBox', [x - w / 2, y - h / 2, w, h].map(fx).join(' ')); } };
+    const getNivel = () => Math.max(1, Math.min(8, +(vb0[2] / alvo[2]).toFixed(2)));
+    const notifyZoom = () => { if (onZoom) onZoom(getNivel()); };
+    if (ativo === false) return { arrastou: () => false, resetar() {}, focar(x, y, w) { const h = w * vb0[3] / vb0[2]; svg.setAttribute('viewBox', [x - w / 2, y - h / 2, w, h].map(fx).join(' ')); }, zoomCentro() {}, setNivel() {}, getNivel };
     if (wrap && wrap.style) { if (getComputedStyle(wrap).overflow === 'visible') wrap.style.overflow = 'hidden'; if (!wrap.style.background) wrap.style.background = PAL.neblina; }
     svg.style.transformOrigin = '0 0'; svg.style.willChange = 'transform'; svg.style.touchAction = 'none';
     const base = () => rect || (rect = svg.getBoundingClientRect());
-    const upp = v => { const r = base(); return Math.max(v[2] / r.width, v[3] / r.height); }; // unidades do SVG por pixel
+    const upp = v => { const r = base(); return Math.max(v[2] / r.width, v[3] / r.height); };
     const toSvg = (cx, cy) => { const r = base(), s = upp(alvo); return [alvo[0] + (cx - r.left - (r.width - alvo[2] / s) / 2) * s, alvo[1] + (cy - r.top - (r.height - alvo[3] / s) / 2) * s]; };
-    const confirmar = () => { timer = 0; vb = alvo.slice(); svg.setAttribute('viewBox', vb.map(fx).join(' ')); svg.style.transform = ''; rect = null; };
+    const confirmar = () => { timer = 0; vb = alvo.slice(); svg.setAttribute('viewBox', vb.map(fx).join(' ')); svg.style.transform = ''; rect = null; notifyZoom(); };
     const mostrar = () => {
       raf = 0;
       const r = base(), s0 = upp(vb), s1 = upp(alvo), a = s0 / s1;
       const ox = (r.width - vb[2] / s0) / 2, oy = (r.height - vb[3] / s0) / 2;
       svg.style.transform = `translate(${(ox * (1 - a) + (vb[0] - alvo[0]) / s1).toFixed(2)}px,${(oy * (1 - a) + (vb[1] - alvo[1]) / s1).toFixed(2)}px) scale(${a.toFixed(5)})`;
+      notifyZoom();
       clearTimeout(timer); timer = setTimeout(confirmar, 150);
     };
     const agendar = () => { if (!raf) raf = requestAnimationFrame(mostrar); };
     const zoom = (f, cx, cy) => {
-      const nw = Math.min(vb0[2] * 1.2, Math.max(vb0[2] / 8, alvo[2] * f)); f = nw / alvo[2];
+      const nw = Math.min(vb0[2] * 1.15, Math.max(vb0[2] / 6, alvo[2] * f)); f = nw / alvo[2];
       const [px, py] = toSvg(cx, cy);
       alvo = [px - (px - alvo[0]) * f, py - (py - alvo[1]) * f, alvo[2] * f, alvo[3] * f]; agendar();
     };
-    const ir = (dest, ms = 550) => {
+    const ir = (dest, ms = 500) => {
       cancelAnimationFrame(anim); const a0 = alvo.slice(), t0 = performance.now();
       const passo = t => { const u = Math.min(1, (t - t0) / ms), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; alvo = a0.map((v, i) => v + (dest[i] - v) * e); mostrar(); if (u < 1) anim = requestAnimationFrame(passo); };
       anim = requestAnimationFrame(passo);
@@ -838,9 +1020,9 @@
       if (!ptrs.has(e.pointerId)) return;
       ptrs.set(e.pointerId, [e.clientX, e.clientY]);
       if (!arrastou) {
-        if (ptrs.size === 1 && Math.hypot(e.clientX - down[0], e.clientY - down[1]) < 5) return; // ainda é um clique
+        if (ptrs.size === 1 && Math.hypot(e.clientX - down[0], e.clientY - down[1]) < 5) return;
         arrastou = true; svg.classList.add('arrastando');
-        for (const id of ptrs.keys()) { try { svg.setPointerCapture(id); } catch (_) { /* ok */ } }
+        for (const id of ptrs.keys()) { try { svg.setPointerCapture(id); } catch (_) {} }
       }
       const ps = [...ptrs.values()];
       const mid = ps.reduce((a, p) => [a[0] + p[0] / ps.length, a[1] + p[1] / ps.length], [0, 0]);
@@ -859,7 +1041,15 @@
     return {
       arrastou: () => arrastou,
       resetar: () => ir(vb0.slice(), 450),
-      focar: (x, y, w, ms) => { w = Math.min(vb0[2] * 1.2, Math.max(vb0[2] / 8, w)); const h = w * vb0[3] / vb0[2]; ir([x - w / 2, y - h / 2, w, h], ms); },
+      focar: (x, y, w, ms) => { w = Math.min(vb0[2] * 1.15, Math.max(vb0[2] / 6, w)); const h = w * vb0[3] / vb0[2]; ir([x - w / 2, y - h / 2, w, h], ms); },
+      zoomCentro: f => { const r = base(); zoom(f, r.left + r.width / 2, r.top + r.height / 2); },
+      setNivel: nivel => {
+        const n = Math.max(0.9, Math.min(6, Number(nivel) || 1));
+        const nw = vb0[2] / n, nh = vb0[3] / n;
+        const cx = alvo[0] + alvo[2] / 2, cy = alvo[1] + alvo[3] / 2;
+        alvo = [cx - nw / 2, cy - nh / 2, nw, nh]; agendar();
+      },
+      getNivel,
     };
   }
 
