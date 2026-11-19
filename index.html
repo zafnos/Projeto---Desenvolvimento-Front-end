@@ -1,61 +1,99 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa do Campus – UNIPÊ</title><link rel="stylesheet" href="style.css"></head><body>
-<section class="pesquisa" aria-label="Pesquisa de prédios">
-  <label for="busca-predio">Buscar prédio</label>
-  <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off" aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
-  <ul id="resultados-predios" class="resultados" aria-label="Resultados da pesquisa"></ul>
-  <p id="estado-pesquisa" class="estado" role="status"></p>
-</section>
-<svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
-<script src="campus-data.js"></script>
-<script src="campus-map.js"></script>
-<script>
-const svg = document.getElementById('mapa');
-const mapa = CampusMap.render(svg, CAMPUS_DATA, {
-  rotacao: 22,
-  // predio = { id, nome, quadra, inclui, centro, bbox, el }  (null = clicou fora de qualquer prédio)
-  onClick: (predio, evento) => {
-    if (!predio) return;                 // aqui o responsável pelo site abre o painel / modal
-    console.log('clicou em', predio.id, '→', predio.nome);
-    mapa.focar(predio.id, { zoom: 3 });  // opcional: aproxima com animação
-  },
-  onHover: predio => { svg.setAttribute('aria-label', predio ? predio.nome : 'Mapa ilustrado do campus UNIPÊ'); },
-});
-window.mapa = mapa; // para testar no console: mapa.predios, mapa.focar('biblioteca'), mapa.selecionar('reitoria')
-const busca = document.getElementById('busca-predio');
-const resultados = document.getElementById('resultados-predios');
-const estado = document.getElementById('estado-pesquisa');
-const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+<html lang="pt-BR">
 
-busca.addEventListener('input', () => {
-  const termo = normalizar(busca.value);
-  resultados.replaceChildren();
-  estado.textContent = '';
-  if (!termo) return;
-  const encontrados = mapa.predios.filter(predio => normalizar(predio.nome).includes(termo));
-  encontrados.forEach(predio => {
-    const item = document.createElement('li');
-    const botao = document.createElement('button');
-    botao.type = 'button';
-    botao.textContent = predio.nome;
-    botao.addEventListener('click', () => {
-      mapa.selecionar(predio.id);
-      mapa.focar(predio.id, { zoom: 3 });
-      busca.value = predio.nome;
-      resultados.replaceChildren();
-      estado.textContent = `${predio.nome} selecionado no mapa.`;
-      busca.focus();
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mapa do Campus – UNIPÊ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Cabeçalho Principal -->
+  <header class="topo-header">
+    <div class="marca-unipe" id="btn-inicio" role="button" tabindex="0" aria-label="Voltar para visão geral do campus UNIPÊ">
+      <div class="marca-simbolo">U</div>
+      <div class="marca-texto">
+        <span class="marca-titulo">LOCALIZA UNIPÊ</span>
+        <span class="marca-subtitulo">Centro Universitário de João Pessoa</span>
+      </div>
+    </div>
+
+    <!-- Falta colocar a class -->
+    <nav aria-label="Filtrar por Quadras do Campus">
+      <button type="button" class="aba-quadra ativa" data-quadra="">Todas</button>
+      <button type="button" class="aba-quadra" data-quadra="laranja"><span class="ponto-cor" style="background:var(--quadra-laranja)"></span>Laranja</button>
+      <button type="button" class="aba-quadra" data-quadra="vermelha"><span class="ponto-cor" style="background:var(--quadra-vermelha)"></span>Vermelha</button>
+      <button type="button" class="aba-quadra" data-quadra="ciano"><span class="ponto-cor" style="background:var(--quadra-ciano)"></span>Ciano</button>
+      <button type="button" class="aba-quadra" data-quadra="azul"><span class="ponto-cor" style="background:var(--quadra-azul)"></span>Azul</button>
+      <button type="button" class="aba-quadra" data-quadra="verde"><span class="ponto-cor" style="background:var(--quadra-verde)"></span>Verde</button>
+      <button type="button" class="aba-quadra" data-quadra="esmeralda"><span class="ponto-cor" style="background:var(--quadra-esmeralda)"></span>Esmeralda</button>
+      <button type="button" class="aba-quadra" data-quadra="bege"><span class="ponto-cor" style="background:var(--quadra-bege)"></span>Bege</button>
+      <button type="button" class="aba-quadra" data-quadra="amarela"><span class="ponto-cor" style="background:var(--quadra-amarela)"></span>Amarela</button>
+</nav>
+
+  <!-- <section class="pesquisa" aria-label="Pesquisa de prédios">
+    <label for="busca-predio">Buscar prédio</label>
+    <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off"
+      aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
+    <ul id="resultados-predios" class="resultados" aria-label="Resultados da pesquisa"></ul>
+    <p id="estado-pesquisa" class="estado" role="status"></p>
+  </section> -->
+
+  <!-- Feito com IA -->
+  <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
+  <script src="campus-data.js"></script>
+  <script src="campus-map.js"></script>
+  
+  <script>
+    const svg = document.getElementById('mapa');
+    const mapa = CampusMap.render(svg, CAMPUS_DATA, {
+      rotacao: 22,
+      // predio = { id, nome, quadra, inclui, centro, bbox, el }  (null = clicou fora de qualquer prédio)
+      onClick: (predio, evento) => {
+        if (!predio) return;                 // aqui o responsável pelo site abre o painel / modal
+        console.log('clicou em', predio.id, '→', predio.nome);
+        mapa.focar(predio.id, { zoom: 3 });  // opcional: aproxima com animação
+      },
+      onHover: predio => { svg.setAttribute('aria-label', predio ? predio.nome : 'Mapa ilustrado do campus UNIPÊ'); },
     });
-    item.appendChild(botao);
-    resultados.appendChild(item);
-  });
-  estado.textContent = encontrados.length ? `${encontrados.length} resultado(s) encontrado(s).` : 'Nenhum prédio encontrado.';
-});
-busca.addEventListener('keydown', evento => {
-  if (evento.key === 'Escape') {
-    resultados.replaceChildren();
-    estado.textContent = '';
-  }
-});
-</script>
-</body></html>
+    window.mapa = mapa; // para testar no console: mapa.predios, mapa.focar('biblioteca'), mapa.selecionar('reitoria')
+    const busca = document.getElementById('busca-predio');
+    const resultados = document.getElementById('resultados-predios');
+    const estado = document.getElementById('estado-pesquisa');
+    const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+
+    busca.addEventListener('input', () => {
+      const termo = normalizar(busca.value);
+      resultados.replaceChildren();
+      estado.textContent = '';
+      if (!termo) return;
+      const encontrados = mapa.predios.filter(predio => normalizar(predio.nome).includes(termo));
+      encontrados.forEach(predio => {
+        const item = document.createElement('li');
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.textContent = predio.nome;
+        botao.addEventListener('click', () => {
+          mapa.selecionar(predio.id);
+          mapa.focar(predio.id, { zoom: 3 });
+          busca.value = predio.nome;
+          resultados.replaceChildren();
+          estado.textContent = `${predio.nome} selecionado no mapa.`;
+          busca.focus();
+        });
+        item.appendChild(botao);
+        resultados.appendChild(item);
+      });
+      estado.textContent = encontrados.length ? `${encontrados.length} resultado(s) encontrado(s).` : 'Nenhum prédio encontrado.';
+    });
+    busca.addEventListener('keydown', evento => {
+      if (evento.key === 'Escape') {
+        resultados.replaceChildren();
+        estado.textContent = '';
+      }
+    });
+  </script>
+</body>
+
+</html>
