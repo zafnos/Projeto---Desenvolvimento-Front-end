@@ -1,0 +1,69 @@
+/*INDICADORES VISUAIS (PINS) DOS LOCAIS NO MAPA UNIP  */
+.marcador-local-unipe {
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.marcador-local-unipe:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+
+.marcador-local-unipe.esmaecido {
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.marcador-sombra {
+  fill: rgba(15, 23, 42, 0.28);
+}
+
+.marcador-corpo {
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.32));
+}
+
+.marcador-texto {
+  fill: #ffffff;
+  font-family: 'Public Sans', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+/* Pulso animado quando o local está ativo/selecionado */
+@keyframes pulsoIndicador {
+  0% {
+    r: 12;
+    opacity: 0.75;
+  }
+  100% {
+    r: 28;
+    opacity: 0;
+  }
+}
+
+.marcador-pulso {
+  fill: none;
+  stroke-width: 2.5;
+  pointer-events: none;
+  display: none;
+}
+
+.marcador-local-unipe.ativo .marcador-pulso {
+  display: block;
+  animation: pulsoIndicador 1.4s ease-out infinite;
+}
+
+.marcador-local-unipe.ativo .marcador-corpo {
+  stroke: #111827;
+  stroke-width: 2.5;
+}
+
+/* Ocultar pins quando o usuário desativar o botão "Siglas" */
+#mapa.ocultar-rotulos .marcador-local-unipe {
+  display: none;
+}
