@@ -9,9 +9,9 @@
 </head>
 
 <body>
-  <!-- Cabeçalho Principal -->
   <header class="topo-header">
-    <div class="marca-unipe" id="btn-inicio" role="button" tabindex="0" aria-label="Voltar para visão geral do campus UNIPÊ">
+    <div class="marca-unipe" id="btn-inicio" role="button" tabindex="0"
+      aria-label="Voltar para visão geral do campus UNIPÊ">
       <div class="marca-simbolo">U</div>
       <div class="marca-texto">
         <span class="marca-titulo">LOCALIZA UNIPÊ</span>
@@ -19,18 +19,60 @@
       </div>
     </div>
 
-    <!-- Falta colocar a classsssss -->
-    <nav aria-label="Filtrar por Quadras do Campus">
+    <nav class="abas-quadras" aria-label="Filtrar por Quadras do Campus">
       <button type="button" class="aba-quadra ativa" data-quadra="">Todas</button>
-      <button type="button" class="aba-quadra" data-quadra="laranja"><span class="ponto-cor" style="background:var(--quadra-laranja)"></span>Laranja</button>
-      <button type="button" class="aba-quadra" data-quadra="vermelha"><span class="ponto-cor" style="background:var(--quadra-vermelha)"></span>Vermelha</button>
-      <button type="button" class="aba-quadra" data-quadra="ciano"><span class="ponto-cor" style="background:var(--quadra-ciano)"></span>Ciano</button>
-      <button type="button" class="aba-quadra" data-quadra="azul"><span class="ponto-cor" style="background:var(--quadra-azul)"></span>Azul</button>
-      <button type="button" class="aba-quadra" data-quadra="verde"><span class="ponto-cor" style="background:var(--quadra-verde)"></span>Verde</button>
-      <button type="button" class="aba-quadra" data-quadra="esmeralda"><span class="ponto-cor" style="background:var(--quadra-esmeralda)"></span>Esmeralda</button>
-      <button type="button" class="aba-quadra" data-quadra="bege"><span class="ponto-cor" style="background:var(--quadra-bege)"></span>Bege</button>
-      <button type="button" class="aba-quadra" data-quadra="amarela"><span class="ponto-cor" style="background:var(--quadra-amarela)"></span>Amarela</button>
-</nav>
+      <button type="button" class="aba-quadra" data-quadra="laranja"><span class="ponto-cor"
+          style="background:var(--quadra-laranja)"></span>Laranja</button>
+      <button type="button" class="aba-quadra" data-quadra="vermelha"><span class="ponto-cor"
+          style="background:var(--quadra-vermelha)"></span>Vermelha</button>
+      <button type="button" class="aba-quadra" data-quadra="ciano"><span class="ponto-cor"
+          style="background:var(--quadra-ciano)"></span>Ciano</button>
+      <button type="button" class="aba-quadra" data-quadra="azul"><span class="ponto-cor"
+          style="background:var(--quadra-azul)"></span>Azul</button>
+      <button type="button" class="aba-quadra" data-quadra="verde"><span class="ponto-cor"
+          style="background:var(--quadra-verde)"></span>Verde</button>
+      <button type="button" class="aba-quadra" data-quadra="esmeralda"><span class="ponto-cor"
+          style="background:var(--quadra-esmeralda)"></span>Esmeralda</button>
+      <button type="button" class="aba-quadra" data-quadra="bege"><span class="ponto-cor"
+          style="background:var(--quadra-bege)"></span>Bege</button>
+      <button type="button" class="aba-quadra" data-quadra="amarela"><span class="ponto-cor"
+          style="background:var(--quadra-amarela)"></span>Amarela</button>
+    </nav>
+
+    <div class="acoes-topo">
+      <div class="caixa-busca">
+        <svg class="icone-busca" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.4">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+        </svg>
+        <input type="search" id="input-busca" class="input-busca" placeholder="Buscar bloco, curso ou serviço..."
+          autocomplete="off" aria-label="Buscar local no campus">
+        <button type="button" id="btn-limpar-busca" class="btn-limpar-busca" aria-label="Limpar busca">&times;</button>
+        <div id="resultados-busca" class="resultados-busca" role="listbox"></div>
+      </div>
+
+      <button type="button" id="btn-mapa-2d" class="btn-topo secundario" title="Ver Mapa 2D Oficial de Quadras">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+          <line x1="8" y1="2" x2="8" y2="18"></line>
+          <line x1="16" y1="6" x2="16" y2="22"></line>
+        </svg>
+        <span>Mapa 2D</span>
+      </button>
+
+      <button type="button" id="btn-compartilhar" class="btn-topo" title="Compartilhar localização atual">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.6" y1="13.5" x2="15.4" y2="17.5"></line>
+          <line x1="15.4" y1="6.5" x2="8.6" y2="10.5"></line>
+        </svg>
+        <span>Compartilhar</span>
+      </button>
+    </div>
+  </header>
 
   <!-- <section class="pesquisa" aria-label="Pesquisa de prédios">
     <label for="busca-predio">Buscar prédio</label>
@@ -44,7 +86,7 @@
   <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
   <script src="campus-data.js"></script>
   <script src="campus-map.js"></script>
-  
+
   <script>
     const svg = document.getElementById('mapa');
     const mapa = CampusMap.render(svg, CAMPUS_DATA, {
