@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa do Campus – UNIPÊ</title><link rel="stylesheet" href="style.css"></head><body>
+  <header>
+  <h1>Localiza Unipê</h1>
+  <p>Mapa interativo do campus</p>
+</header>
 <section class="pesquisa" aria-label="Pesquisa de prédios">
   <label for="busca-predio">Buscar prédio</label>
   <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off" aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
@@ -7,6 +11,11 @@
   <p id="estado-pesquisa" class="estado" role="status"></p>
 </section>
 <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
+<footer>
+  <p><strong>Localiza Unipê</strong> - Mapa interativo do campus UNIPÊ</p>
+  <p>Equipe: Marcelo Felix Araujo, Afonso Michel Silva Pereira, Júlio César Dos Anjos, Naassom Do Nascimento Melo e Cirilo Leandro Venancio</p>
+  <p>Projeto acadêmico - 2026</p>
+</footer>
 <script src="campus-data.js"></script>
 <script src="campus-map.js"></script>
 <script>
