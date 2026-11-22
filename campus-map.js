@@ -366,11 +366,14 @@
     }).join('');
 
     const totemVoceSvg = `<g class="totem-voce" id="totem-voce" transform="translate(${fx(vocePt[0])},${fx(vocePt[1])})">`
+ HEAD
       + `<circle cx="0" cy="0" r="8" fill="rgba(227,27,35,0.22)"/>`
       + `<circle cx="0" cy="0" r="3.2" fill="#e31b23" stroke="#fff" stroke-width="1.2"/>`
       + `<g transform="translate(0,-12)"><rect x="-18" y="-8" width="36" height="14" rx="4" fill="#111827" stroke="#fff" stroke-width="1.1"/>`
       + `<path d="M-3 6L0 9.5L3 6Z" fill="#111827"/>`
       + `<text x="0" y="1.5" text-anchor="middle" fill="#ffffff" font-size="7.2" font-weight="800" font-family="Public Sans, system-ui, sans-serif">Você</text></g></g>`;
+=======
+ main
 
     out.push(`<g class="camada-rotulos" id="camada-rotulos">${rotulosSvg}${totemVoceSvg}</g>`);
 
