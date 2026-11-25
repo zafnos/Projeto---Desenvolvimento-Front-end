@@ -4,7 +4,7 @@ html,
 body {
   height: 100%;
   margin: 0;
-  background: #dfe6ea;
+  background: #163a6d;
 }
 
 /* Mapa */
@@ -135,7 +135,7 @@ body {
   display: block;
   width: 100%;}
 
-footerhtml,body{margin:0;height:100%;background:#dfe6ea}
+footerhtml,body{margin:0;height:100%;background:#163a6d}
 height:calc(100vh - 100px);cursor:grab;touch-action:none;user-select:none
 #mapa.arrastando{cursor:grabbing}
 /* cada prédio tem UM elemento clicável: <g class="predio" id="predio-biblioteca" data-id data-nome ...> */
