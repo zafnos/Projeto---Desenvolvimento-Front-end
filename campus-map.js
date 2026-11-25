@@ -45,7 +45,7 @@
     pav: '#dcd8cf', pavBorda: '#c3beb2', meioFio: '#ece9e2',
     parede: [241, 233, 219], janela: '#5d6f80', vidro: '#8fb3cc',
     telha: [204, 104, 60], metal: [158, 165, 171], cinza: [142, 149, 156], branco: [234, 236, 238],
-    sombra: 'rgba(24,46,30,0.30)', neblina: '#dfe6ea',
+    sombra: 'rgba(24,46,30,0.30)', neblina: '#163a6d',
     pista: '#dedad2', pistaFaixa: '#f3f1ec', campo: '#86b252', campoListra: '#92bb5e',
     agua: '#4fb8e6', aguaRaia: '#e8f7ff', deck: '#e8e1d2',
     areia2: '#dccfa6', trilha: '#eee6c9', arbusto: '#a9b272', painel: '#3d7db6',
@@ -140,7 +140,8 @@
     // ---------- CHÃO (desenhado em coordenadas de planta com uma única matriz) ----------
     const W = data.meta.width, H = data.meta.height, EXT = data.meta.ext || 0;
     const g = [], carros = [], modelosCarro = new Map();
-    g.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="${PAL.grama}"/>`);
+    // grama se estende além do campus para a névoa cobrir sem mostrar a borda reta do terreno
+    g.push(`<rect x="-400" y="-400" width="${W + 800}" height="${H + 800}" fill="${PAL.grama}"/>`);
     // entorno a leste: areal com trilhas e arbustos (como na foto de satélite)
     g.push(`<rect x="${W - 3}" y="-200" width="${EXT + 500}" height="${H + 400}" fill="${PAL.areia2}"/>`);
     {
@@ -314,9 +315,9 @@
           const Ai = alfa((ds[i] + ds[i + 1]) / 2);
           h += `<path d="${fora}${dp(f(ds[i]))}" fill-opacity="${fx3(1 - (1 - Ai) / (1 - ant))}"/>`; ant = Ai;
         }
-        return h + `<path d="${big}${fora}" fill-opacity="${fx3(T * 0.995)}"/>`;
+        return h + `<path d="${big}${fora}" fill-opacity="${fx3(T >= 1 ? 1 : T * 0.995)}"/>`;
       };
-      out.push(`<g class="neblina" fill="${PAL.neblina}" fill-rule="evenodd" pointer-events="none">${faixas(1, 7, 14, 0.55, 12)}${faixas(1.5, 0, 45, 0.95, 20)}</g>`);
+      out.push(`<g class="neblina" fill="${PAL.neblina}" fill-rule="evenodd" pointer-events="none">${faixas(1, 7, 14, 0.55, 12)}${faixas(1.5, 0, 45, 1, 20)}</g>`);
     }
 
     // ---------- camada de cliques, rotas e rótulos ----------
@@ -983,6 +984,19 @@
     svg.style.transformOrigin = '0 0'; svg.style.willChange = 'transform'; svg.style.touchAction = 'none';
     const base = () => rect || (rect = svg.getBoundingClientRect());
     const upp = v => { const r = base(); return Math.max(v[2] / r.width, v[3] / r.height); };
+    // limite de zoom out: a área visível (já contando a proporção da tela) nunca passa da área do campus (vb0)
+    const maxW = () => { const r = base(); if (!r.width || !r.height) return vb0[2]; const A = r.width / r.height, r0 = vb0[3] / vb0[2]; return vb0[2] / Math.max(1, r0 * A); };
+    const minW = () => vb0[2] / 6;
+    const limW = w => Math.min(maxW(), Math.max(minW(), w));
+    // mantém o centro da câmera dentro do campus, para não arrastar o mapa para o vazio
+    const prender = v => {
+      const s = upp(v), r = base(), vw = r.width * s, vh = r.height * s;
+      const mx = Math.max(0, (vb0[2] - vw) / 2), my = Math.max(0, (vb0[3] - vh) / 2);
+      const c0x = vb0[0] + vb0[2] / 2, c0y = vb0[1] + vb0[3] / 2;
+      const cx = Math.min(c0x + mx, Math.max(c0x - mx, v[0] + v[2] / 2)), cy = Math.min(c0y + my, Math.max(c0y - my, v[1] + v[3] / 2));
+      return [cx - v[2] / 2, cy - v[3] / 2, v[2], v[3]];
+    };
+    const inicio = () => { const w = limW(vb0[2]), h = w * vb0[3] / vb0[2]; return [vb0[0] + (vb0[2] - w) / 2, vb0[1] + (vb0[3] - h) / 2, w, h]; };
     const toSvg = (cx, cy) => { const r = base(), s = upp(alvo); return [alvo[0] + (cx - r.left - (r.width - alvo[2] / s) / 2) * s, alvo[1] + (cy - r.top - (r.height - alvo[3] / s) / 2) * s]; };
     const confirmar = () => { timer = 0; vb = alvo.slice(); svg.setAttribute('viewBox', vb.map(fx).join(' ')); svg.style.transform = ''; rect = null; notifyZoom(); };
     const mostrar = () => {
@@ -995,9 +1009,9 @@
     };
     const agendar = () => { if (!raf) raf = requestAnimationFrame(mostrar); };
     const zoom = (f, cx, cy) => {
-      const nw = Math.min(vb0[2] * 1.15, Math.max(vb0[2] / 6, alvo[2] * f)); f = nw / alvo[2];
+      const nw = limW(alvo[2] * f); f = nw / alvo[2];
       const [px, py] = toSvg(cx, cy);
-      alvo = [px - (px - alvo[0]) * f, py - (py - alvo[1]) * f, alvo[2] * f, alvo[3] * f]; agendar();
+      alvo = prender([px - (px - alvo[0]) * f, py - (py - alvo[1]) * f, alvo[2] * f, alvo[3] * f]); agendar();
     };
     const ir = (dest, ms = 500) => {
       cancelAnimationFrame(anim); const a0 = alvo.slice(), t0 = performance.now();
@@ -1021,7 +1035,7 @@
       }
       const ps = [...ptrs.values()];
       const mid = ps.reduce((a, p) => [a[0] + p[0] / ps.length, a[1] + p[1] / ps.length], [0, 0]);
-      if (last) { const s = upp(alvo); alvo = [alvo[0] - (mid[0] - last[0]) * s, alvo[1] - (mid[1] - last[1]) * s, alvo[2], alvo[3]]; agendar(); }
+      if (last) { const s = upp(alvo); alvo = prender([alvo[0] - (mid[0] - last[0]) * s, alvo[1] - (mid[1] - last[1]) * s, alvo[2], alvo[3]]); agendar(); }
       if (ps.length === 2) {
         const d = Math.hypot(ps[0][0] - ps[1][0], ps[0][1] - ps[1][1]);
         if (lastD) zoom(lastD / d, mid[0], mid[1]);
@@ -1031,18 +1045,19 @@
     });
     const up = e => { ptrs.delete(e.pointerId); last = null; lastD = null; if (!ptrs.size) svg.classList.remove('arrastando'); };
     svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
-    svg.addEventListener('dblclick', () => ir(vb0.slice(), 400));
-    window.addEventListener('resize', () => { if (!timer) rect = null; });
+    svg.addEventListener('dblclick', () => ir(inicio(), 400));
+    window.addEventListener('resize', () => { rect = null; const w = limW(alvo[2]); if (w !== alvo[2]) { const cx = alvo[0] + alvo[2] / 2, cy = alvo[1] + alvo[3] / 2, h = w * vb0[3] / vb0[2]; alvo = [cx - w / 2, cy - h / 2, w, h]; } alvo = prender(alvo); confirmar(); });
+    // vista inicial já respeitando o limite
+    alvo = inicio(); confirmar();
     return {
       arrastou: () => arrastou,
-      resetar: () => ir(vb0.slice(), 450),
-      focar: (x, y, w, ms) => { w = Math.min(vb0[2] * 1.15, Math.max(vb0[2] / 6, w)); const h = w * vb0[3] / vb0[2]; ir([x - w / 2, y - h / 2, w, h], ms); },
+      resetar: () => ir(inicio(), 450),
+      focar: (x, y, w, ms) => { w = limW(w); const h = w * vb0[3] / vb0[2]; ir(prender([x - w / 2, y - h / 2, w, h]), ms); },
       zoomCentro: f => { const r = base(); zoom(f, r.left + r.width / 2, r.top + r.height / 2); },
       setNivel: nivel => {
-        const n = Math.max(0.9, Math.min(6, Number(nivel) || 1));
-        const nw = vb0[2] / n, nh = vb0[3] / n;
+        const nw = limW(vb0[2] / (Number(nivel) || 1)), nh = nw * vb0[3] / vb0[2];
         const cx = alvo[0] + alvo[2] / 2, cy = alvo[1] + alvo[3] / 2;
-        alvo = [cx - nw / 2, cy - nh / 2, nw, nh]; agendar();
+        alvo = prender([cx - nw / 2, cy - nh / 2, nw, nh]); agendar();
       },
       getNivel,
     };
