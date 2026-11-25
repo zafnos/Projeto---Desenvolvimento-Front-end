@@ -137,12 +137,6 @@ body {
 
 footerhtml,body{margin:0;height:100%;background:#163a6d}
 height:calc(100vh - 100px);cursor:grab;touch-action:none;user-select:none
-#mapa.arrastando{cursor:grabbing}
-/* cada prédio tem UM elemento clicável: <g class="predio" id="predio-biblioteca" data-id data-nome ...> */
-#mapa .predio{cursor:pointer;outline:none}
-#mapa .hit{fill:transparent;stroke:none}
-#mapa .predio:hover .hit,#mapa .predio:focus-visible .hit{fill:rgba(255,255,255,.28);stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
-#mapa .predio.ativo .hit{fill:rgba(255,226,120,.38);stroke:#fff;stroke-width:1.6;stroke-linejoin:round}
 .pesquisa{position:absolute;z-index:1;top:76px;left:16px;width:min(340px,calc(100vw - 32px));box-sizing:border-box;padding:14px;background:#fff;border-radius:10px;box-shadow:0 3px 14px #0003;font:16px Arial,sans-serif}
 .pesquisa label{display:block;font-weight:700;margin-bottom:8px;color:#263b32}
 .pesquisa input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #879a90;border-radius:6px;font:inherit}
