@@ -246,16 +246,13 @@ body {
 .local-figura img { display: block; width: 100%; height: 200px; object-fit: cover; background: #e2e8d8; }
 .local-figura figcaption { padding: 9px 18px; color: #355379; font-size: 13px; }
 .painel-conteudo { padding: 16px 18px 24px; }
-.local-acoes { display: flex; gap: 8px; }
-.local-acoes button, .local-acoes a {
-  flex: 1; padding: 11px 8px; border: 1px solid #10315d; border-radius: 5px;
+.local-acoes { display: flex; justify-content: center; }
+.local-acoes a {
+  width: min(100%, 220px); padding: 11px 8px; border: 1px solid #10315d; border-radius: 5px;
   font: inherit; font-size: 12px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer;
 }
-.local-acoes button { background: #10315d; color: #fff; }
 .local-acoes a { background: #fff; color: #10315d; }
 .local-acoes :focus-visible { outline: 3px solid #217a57; outline-offset: 2px; }
-.local-rota-info { color: #355379; font-size: 13px; }
-.local-rota-info:empty { display: none; }
 .painel-conteudo section { margin-top: 20px; }
 .painel-conteudo h3 { margin: 0 0 7px; color: #10315d; font-size: 12px; letter-spacing: .03em; text-transform: uppercase; }
 .painel-conteudo section p { margin: 0; font-size: 14px; line-height: 1.55; }

@@ -174,20 +174,15 @@
     const setores = document.getElementById('local-setores');
     const cursos = document.getElementById('local-cursos');
     const horario = document.getElementById('local-horario');
-    const rota = document.getElementById('local-rota');
-    const rotaInfo = document.getElementById('local-rota-info');
     const maps = document.getElementById('local-maps');
-    let selecionado = null;
 
     function fecharPainel() {
       painel.hidden = true;
       if (window.mapa) window.mapa.limparSelecao();
-      selecionado = null;
     }
 
     function mostrar(predio) {
       if (!predio) { fecharPainel(); return; }
-      selecionado = predio;
       const info = DESCRICOES_UNIDADES[predio.id] || {};
       const quadra = predio.quadra || info.quadra || '';
       categoria.textContent = NOMES_QUADRA[quadra] || (quadra ? 'Quadra ' + quadra : 'Campus UNIPÊ');
@@ -205,8 +200,6 @@
       horario.textContent = predio.horario || info.horario || '';
       document.getElementById('secao-cursos').hidden = !cursos.textContent;
       document.getElementById('secao-horario').hidden = !horario.textContent;
-      rotaInfo.textContent = '';
-      if (window.mapa) window.mapa.limparRota();
 
       // A ilustração é um recorte do mapa existente, não uma fotografia do local.
       const copia = document.getElementById('mapa').cloneNode(true);
@@ -228,11 +221,6 @@
     fechar.addEventListener('click', fecharPainel);
     document.addEventListener('keydown', evento => {
       if (evento.key === 'Escape' && !painel.hidden) fecharPainel();
-    });
-    rota.addEventListener('click', () => {
-      if (!selecionado || !window.mapa) return;
-      const resultado = window.mapa.tracarRota(selecionado.id);
-      if (resultado) rotaInfo.textContent = `Rota ilustrativa: aproximadamente ${resultado.metros} m (${resultado.minutos} min a pé).`;
     });
     return { mostrar, fechar: fecharPainel };
   }
