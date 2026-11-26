@@ -163,106 +163,79 @@
     bege: 'Quadra Bege', amarela: 'Quadra Amarela • Esportes'
   };
 
-  function preencherLista(lista, predio, info) {
-    lista.replaceChildren();
-    const adicionar = (rotulo, valor) => {
-      if (!valor || (Array.isArray(valor) && !valor.length)) return;
-      const li = document.createElement('li');
-      const strong = document.createElement('strong');
-      strong.textContent = rotulo + ': ';
-      li.append(strong, document.createTextNode(Array.isArray(valor) ? valor.join(', ') : String(valor)));
-      lista.appendChild(li);
-    };
-    adicionar('Sigla', predio.sigla);
-    adicionar('Setores', predio.inclui);
-    adicionar('Cursos / Áreas', predio.cursos || info.cursos);
-    adicionar('Horário', predio.horario || info.horario);
-  }
-
   function inicializarCampusDescricoes() {
     const painel = document.getElementById('painel-local');
     const fechar = document.getElementById('fechar-painel');
     const categoria = document.getElementById('local-categoria');
     const titulo = document.getElementById('local-titulo');
     const descricao = document.getElementById('local-descricao');
-    const lista = document.getElementById('local-info');
-    const areaMapa = document.querySelector('.area-mapa');
-    if (!painel || !fechar || !categoria || !titulo || !descricao || !lista || !areaMapa) {
-      console.error('Painel de descrição incompleto. Confira os IDs no index.html.');
-      return { mostrar() {}, fechar() {} };
-    }
+    const imagem = document.getElementById('local-imagem');
+    const legenda = document.getElementById('local-legenda');
+    const setores = document.getElementById('local-setores');
+    const cursos = document.getElementById('local-cursos');
+    const horario = document.getElementById('local-horario');
+    const rota = document.getElementById('local-rota');
+    const rotaInfo = document.getElementById('local-rota-info');
+    const maps = document.getElementById('local-maps');
+    let selecionado = null;
 
     function fecharPainel() {
       painel.hidden = true;
-      painel.classList.remove('painel-esquerda', 'painel-direita');
+      if (window.mapa) window.mapa.limparSelecao();
+      selecionado = null;
     }
 
-    function obterPonto(predio, evento, svg) {
-      const area = areaMapa.getBoundingClientRect();
-
-      if (evento && Number.isFinite(evento.clientX) && Number.isFinite(evento.clientY)) {
-        return { x: evento.clientX - area.left, y: evento.clientY - area.top };
-      }
-
-      if (predio && predio.el && typeof predio.el.getBoundingClientRect === 'function') {
-        const r = predio.el.getBoundingClientRect();
-        return { x: r.left + r.width / 2 - area.left, y: r.top + r.height / 2 - area.top };
-      }
-
-      if (svg && predio && Number.isFinite(predio.cx) && Number.isFinite(predio.cy) && svg.createSVGPoint) {
-        const p = svg.createSVGPoint();
-        p.x = predio.cx;
-        p.y = predio.cy;
-        const tela = p.matrixTransform(svg.getScreenCTM());
-        return { x: tela.x - area.left, y: tela.y - area.top };
-      }
-
-      return { x: area.width / 2, y: area.height / 2 };
-    }
-
-    function posicionarPainel(predio, evento, svg) {
-      const area = areaMapa.getBoundingClientRect();
-      const ponto = obterPonto(predio, evento, svg);
-      const margem = 12;
-      const distancia = 18;
-
-      painel.hidden = false;
-      painel.classList.remove('painel-esquerda', 'painel-direita');
-
-      const largura = painel.offsetWidth;
-      const altura = painel.offsetHeight;
-      const cabeDireita = ponto.x + distancia + largura <= area.width - margem;
-      const lado = cabeDireita ? 'direita' : 'esquerda';
-
-      let left = lado === 'direita' ? ponto.x + distancia : ponto.x - distancia - largura;
-      let top = ponto.y - Math.min(altura * 0.22, 90);
-
-      left = Math.max(margem, Math.min(left, area.width - largura - margem));
-      top = Math.max(margem, Math.min(top, area.height - altura - margem));
-
-      painel.style.left = `${left}px`;
-      painel.style.top = `${top}px`;
-      painel.style.right = 'auto';
-      painel.style.bottom = 'auto';
-      painel.classList.add(lado === 'direita' ? 'painel-direita' : 'painel-esquerda');
-    }
-
-    function mostrar(predio, evento, svg) {
+    function mostrar(predio) {
       if (!predio) { fecharPainel(); return; }
+      selecionado = predio;
       const info = DESCRICOES_UNIDADES[predio.id] || {};
       const quadra = predio.quadra || info.quadra || '';
       categoria.textContent = NOMES_QUADRA[quadra] || (quadra ? 'Quadra ' + quadra : 'Campus UNIPÊ');
+      categoria.style.backgroundColor = predio.corQuadra || '#12335f';
       titulo.textContent = info.titulo || predio.nome || 'Unidade do campus';
       descricao.textContent = predio.descricao || info.descricao || 'Informações deste local em atualização.';
-      preencherLista(lista, predio, info);
-      posicionarPainel(predio, evento, svg);
+      const itens = Array.isArray(predio.inclui) ? predio.inclui : [];
+      setores.replaceChildren(...itens.map(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        return li;
+      }));
+      document.getElementById('secao-setores').hidden = !itens.length;
+      cursos.textContent = predio.cursos || info.cursos || '';
+      horario.textContent = predio.horario || info.horario || '';
+      document.getElementById('secao-cursos').hidden = !cursos.textContent;
+      document.getElementById('secao-horario').hidden = !horario.textContent;
+      rotaInfo.textContent = '';
+      if (window.mapa) window.mapa.limparRota();
+
+      // A ilustração é um recorte do mapa existente, não uma fotografia do local.
+      const copia = document.getElementById('mapa').cloneNode(true);
+      const [x, y, largura, altura] = predio.bbox;
+      const tamanho = Math.max(largura * 2.3, altura * 2.3, 100);
+      copia.setAttribute('viewBox', `${x + largura / 2 - tamanho / 2} ${y + altura / 2 - tamanho * 0.32} ${tamanho} ${tamanho * 0.64}`);
+      copia.removeAttribute('id');
+      copia.removeAttribute('style');
+      copia.querySelectorAll('.camada-predios, .camada-rotulos, #camada-rotas').forEach(el => el.remove());
+      imagem.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(copia));
+      imagem.alt = 'Ilustração no mapa: ' + predio.nome;
+      legenda.textContent = 'Ilustração do mapa: ' + predio.nome;
+      const ponto = (window.CAMPUS_DATA.pontos || []).find(p => p.predio === predio.id && p.latlng);
+      maps.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ponto ? ponto.latlng.join(',') : predio.nome + ', UNIPÊ João Pessoa');
+      painel.hidden = false;
+      painel.scrollTop = 0;
     }
 
     fechar.addEventListener('click', fecharPainel);
-    window.addEventListener('resize', fecharPainel);
+    document.addEventListener('keydown', evento => {
+      if (evento.key === 'Escape' && !painel.hidden) fecharPainel();
+    });
+    rota.addEventListener('click', () => {
+      if (!selecionado || !window.mapa) return;
+      const resultado = window.mapa.tracarRota(selecionado.id);
+      if (resultado) rotaInfo.textContent = `Rota ilustrativa: aproximadamente ${resultado.metros} m (${resultado.minutos} min a pé).`;
+    });
     return { mostrar, fechar: fecharPainel };
   }
-
   global.CampusDescriptions = {
     inicializar: inicializarCampusDescricoes,
     dados: DESCRICOES_UNIDADES

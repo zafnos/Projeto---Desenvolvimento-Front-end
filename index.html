@@ -41,11 +41,27 @@
     <div class="area-mapa">
       <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
       <aside id="painel-local" class="painel-local" aria-labelledby="local-titulo" hidden>
-        <button id="fechar-painel" class="fechar-painel" type="button" aria-label="Fechar informações">×</button>
-        <span id="local-categoria" class="local-categoria"></span>
-        <h2 id="local-titulo">Informações do local</h2>
-        <p id="local-descricao"></p>
-        <ul id="local-info"></ul>
+        <div class="painel-cabecalho">
+          <button id="fechar-painel" class="fechar-painel" type="button" aria-label="Fechar informações">×</button>
+          <span id="local-categoria" class="local-categoria"></span>
+          <h2 id="local-titulo">Informações do local</h2>
+          <p class="local-endereco">⌖ Rod. BR-230, Km 22 — Água Fria, João Pessoa - PB</p>
+        </div>
+        <figure class="local-figura">
+          <img id="local-imagem" alt="">
+          <figcaption id="local-legenda"></figcaption>
+        </figure>
+        <div class="painel-conteudo">
+          <div class="local-acoes">
+            <button id="local-rota" type="button">➤ Rota a partir do totem</button>
+            <a id="local-maps" target="_blank" rel="noopener noreferrer">↗ Google Maps</a>
+          </div>
+          <p id="local-rota-info" class="local-rota-info" role="status"></p>
+          <section><h3>Sobre o local</h3><p id="local-descricao"></p></section>
+          <section id="secao-setores"><h3>Blocos, setores e serviços</h3><ul id="local-setores" class="local-etiquetas"></ul></section>
+          <section id="secao-cursos"><h3>Cursos e áreas atendidas</h3><p id="local-cursos"></p></section>
+          <section id="secao-horario"><h3>Horário de funcionamento</h3><p id="local-horario"></p></section>
+        </div>
       </aside>
     </div>
   </main>

@@ -224,96 +224,43 @@ body {
 }
 
 .painel-local {
-  position: absolute;
-  z-index: 8;
-  left: 12px;
-  top: 12px;
-  width: min(340px, calc(100% - 24px));
-  max-height: min(62vh, 470px);
-  overflow: auto;
-  padding: 18px;
-  border: 1px solid #dce7df;
-  border-left: 5px solid var(--cor-setor, #217a57);
-  border-radius: 12px;
-  background: #fff;
-  color: #263b32;
-  box-shadow: 0 8px 28px #0004;
-  animation: painel-entrada .16s ease-out;
+  position: absolute; z-index: 8; inset: 0 0 0 auto;
+  width: min(420px, 100%); overflow-y: auto;
+  background: #fff; color: #17243a; box-shadow: -6px 0 24px #0003;
+  animation: painel-entrada .2s ease-out;
 }
-
-.painel-local[hidden] {
-  display: none;
-}
-
-.painel-local.painel-direita::before,
-.painel-local.painel-esquerda::before {
-  content: "";
-  position: absolute;
-  top: 28px;
-  width: 0;
-  height: 0;
-  border-top: 9px solid transparent;
-  border-bottom: 9px solid transparent;
-}
-
-.painel-local.painel-direita::before {
-  left: -10px;
-  border-right: 10px solid #fff;
-}
-
-.painel-local.painel-esquerda::before {
-  right: -10px;
-  border-left: 10px solid #fff;
-}
-
-@keyframes painel-entrada {
-  from {
-    opacity: 0;
-    transform: translateY(5px) scale(.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
+.painel-local[hidden], .painel-local [hidden] { display: none; }
+@keyframes painel-entrada { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.painel-cabecalho { padding: 18px 18px 14px; }
 .fechar-painel {
-  float: right;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: #217a57;
-  color: white;
-  font-size: 23px;
-  line-height: 1;
-  cursor: pointer;
+  float: right; width: 34px; height: 34px; border: 0; border-radius: 5px;
+  background: #10315d; color: #fff; font-size: 22px; cursor: pointer;
 }
-
 .local-categoria {
-  display: block;
-  margin: 5px 42px 8px 0;
-  color: #217a57;
-  font-size: 13px;
-  font-weight: 700;
+  display: inline-block; max-width: calc(100% - 45px); padding: 4px 8px; border-radius: 4px;
+  color: #fff; font-size: 11px; font-weight: 700; text-transform: uppercase;
 }
-
-.painel-local h2 {
-  clear: both;
-  margin: 8px 0;
-  font-size: 21px;
+.painel-local h2 { margin: 9px 40px 5px 0; color: #10315d; font-size: 20px; line-height: 1.2; }
+.local-endereco { margin: 0; color: #58677f; font-size: 13px; line-height: 1.4; }
+.local-figura { margin: 0; background: #eef2f7; }
+.local-figura img { display: block; width: 100%; height: 200px; object-fit: cover; background: #e2e8d8; }
+.local-figura figcaption { padding: 9px 18px; color: #355379; font-size: 13px; }
+.painel-conteudo { padding: 16px 18px 24px; }
+.local-acoes { display: flex; gap: 8px; }
+.local-acoes button, .local-acoes a {
+  flex: 1; padding: 11px 8px; border: 1px solid #10315d; border-radius: 5px;
+  font: inherit; font-size: 12px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer;
 }
-
-.painel-local p {
-  line-height: 1.55;
-}
-
-.painel-local ul {
-  padding-left: 20px;
-  line-height: 1.65;
-}
-
+.local-acoes button { background: #10315d; color: #fff; }
+.local-acoes a { background: #fff; color: #10315d; }
+.local-acoes :focus-visible { outline: 3px solid #217a57; outline-offset: 2px; }
+.local-rota-info { color: #355379; font-size: 13px; }
+.local-rota-info:empty { display: none; }
+.painel-conteudo section { margin-top: 20px; }
+.painel-conteudo h3 { margin: 0 0 7px; color: #10315d; font-size: 12px; letter-spacing: .03em; text-transform: uppercase; }
+.painel-conteudo section p { margin: 0; font-size: 14px; line-height: 1.55; }
+.local-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.local-etiquetas li { padding: 5px 8px; border: 1px solid #d8e0eb; border-radius: 4px; background: #f2f5f9; font-size: 13px; }
 .rodape {
   flex: 0 0 auto;
   min-height: 48px;
@@ -345,11 +292,8 @@ body {
     padding: 10px;
   }
 
-  .painel-local {
-    width: min(300px, calc(100% - 18px));
-    max-height: min(55vh, 360px);
-    padding: 14px;
-  }
+  .painel-local { inset: auto 0 0; width: 100%; max-height: 72%; border-radius: 14px 14px 0 0; }
+  .local-figura img { height: 145px; }
 
   .rodape {
     font-size: 10px;
