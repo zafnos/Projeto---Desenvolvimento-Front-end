@@ -10,12 +10,20 @@
 </head>
 
 <body>
+  <svg class="filtro-logo" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <filter id="logo-transparente" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 0.8  0 0 0 0 0  0 0 -1 0 1" />
+    </filter>
+  </svg>
 
   <!--Cabeçalho do site com título e subtítulo -->
   <header class="cabecalho">
     <div class="marca">
-      <h1>Localiza Unipê</h1>
-      <p>Mapa interativo do campus</p>
+      <span class="marca-logo-area"><img class="marca-logo" src="logo-localiza.png" alt=""></span>
+      <div>
+        <h1>Localiza Unipê</h1>
+        <p>Mapa interativo do campus</p>
+      </div>
     </div>
 
     <!-- <Nav> Navegação principal. -->
@@ -30,13 +38,7 @@
   </header>
 
   <main class="conteudo">
-    <section class="pesquisa" aria-label="Pesquisa de prédios">
-      <label for="busca-predio">Buscar prédio</label>
-      <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off"
-        aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
-      <ul id="resultados-predios" class="resultados" aria-label="Resultados da pesquisa"></ul>
-      <p id="estado-pesquisa" class="estado" role="status" aria-live="polite"></p>
-    </section>
+    <p id="estado-mapa" class="estado-mapa" role="alert"></p>
 
     <div class="area-mapa">
       <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
@@ -63,7 +65,7 @@
       </aside>
     </div>
   </main>
-  
+
   <!-- Arquivos JavaScript separados do projeto. -->
   <script src="campus-data.js"></script>
   <script src="campus-map.js"></script>

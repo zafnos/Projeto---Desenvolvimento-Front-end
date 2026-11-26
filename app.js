@@ -1,9 +1,7 @@
 (() => {
       'use strict';
       const svg = document.getElementById('mapa');
-      const busca = document.getElementById('busca-predio');
-      const resultados = document.getElementById('resultados-predios');
-      const estado = document.getElementById('estado-pesquisa');
+      const estado = document.getElementById('estado-mapa');
 
       function erroVisivel(mensagem) {
         estado.textContent = mensagem;
@@ -39,37 +37,4 @@
       }
 
       window.mapa = mapa;
-      const normalizar = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
-
-      busca.addEventListener('input', () => {
-        const termo = normalizar(busca.value);
-        resultados.replaceChildren();
-        estado.textContent = '';
-        if (!termo) return;
-        const encontrados = mapa.predios.filter(predio => normalizar(predio.nome).includes(termo));
-        encontrados.forEach(predio => {
-          const li = document.createElement('li');
-          const botao = document.createElement('button');
-          botao.type = 'button';
-          botao.textContent = predio.nome;
-          botao.addEventListener('click', () => {
-            mapa.selecionar(predio.id);
-            mapa.focar(predio.id, { zoom: 3 });
-            painel.mostrar(predio);
-            busca.value = predio.nome;
-            resultados.replaceChildren();
-            estado.textContent = predio.nome + ' selecionado no mapa.';
-          });
-          li.appendChild(botao);
-          resultados.appendChild(li);
-        });
-        estado.textContent = encontrados.length ? encontrados.length + ' resultado(s) encontrado(s).' : 'Nenhum prédio encontrado.';
-      });
-
-      busca.addEventListener('keydown', evento => {
-        if (evento.key === 'Escape') {
-          resultados.replaceChildren();
-          estado.textContent = '';
-        }
-      });
     })();
