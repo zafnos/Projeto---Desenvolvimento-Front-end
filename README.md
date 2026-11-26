@@ -40,7 +40,7 @@ A fonte **Public Sans** é carregada pelo Google Fonts. O link de localização 
 
 ## Quantidade de linhas e participação por tecnologia
 
-Na contagem realizada em **26 de novembro de 2026**, os seis arquivos HTML, CSS e JavaScript carregados pela página somam **1.910 linhas físicas**, incluindo linhas em branco, comentários e dados. A participação abaixo representa a proporção dessas linhas por linguagem; ela não mede complexidade, esforço ou uso de recursos.
+Os seis arquivos HTML, CSS e JavaScript carregados pela página somam **1.910 linhas físicas**, incluindo linhas em branco, comentários e dados. A participação abaixo representa a proporção dessas linhas por linguagem;
 
 | Tecnologia | Arquivos contabilizados | Linhas | Participação |
 | --- | --- | ---: | ---: |
