@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,32 @@
   <title>Localiza Unipê — Mapa interativo do campus</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+  <!--Cabeçalho do site com título e subtítulo -->
   <header class="cabecalho">
-    <div><h1>Localiza Unipê</h1><p>Mapa interativo do campus</p></div>
+    <div class="marca">
+      <h1>Localiza Unipê</h1>
+      <p>Mapa interativo do campus</p>
+    </div>
+
+    <!-- <Nav> Navegação principal. -->
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#">Mapa</a></li>
+        <li><a href="#">Sobre</a></li>
+        <li><a href="#">Portfolio</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
   </header>
 
   <main class="conteudo">
     <section class="pesquisa" aria-label="Pesquisa de prédios">
       <label for="busca-predio">Buscar prédio</label>
-      <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off" aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
+      <input id="busca-predio" type="search" placeholder="Digite o nome do prédio" autocomplete="off"
+        aria-controls="resultados-predios" aria-describedby="estado-pesquisa">
       <ul id="resultados-predios" class="resultados" aria-label="Resultados da pesquisa"></ul>
       <p id="estado-pesquisa" class="estado" role="status" aria-live="polite"></p>
     </section>
@@ -43,4 +61,5 @@
   <script src="campus-descricoes.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
