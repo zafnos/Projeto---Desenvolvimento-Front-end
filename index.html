@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#217a57">
   <title>Localiza Unipê — Mapa interativo do campus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -26,13 +29,15 @@
       </div>
     </div>
 
-    <!-- <Nav> Navegação principal. -->
-    <nav>
+    <div class="caixa-busca">
+      <svg class="icone-busca" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.2" y2="16.2"></line></svg>
+      <input type="search" id="input-busca" class="input-busca" placeholder="Buscar bloco, curso ou serviço..." autocomplete="off" aria-label="Buscar local no campus" aria-controls="resultados-busca" aria-expanded="false">
+      <button type="button" id="btn-limpar-busca" class="btn-limpar-busca" aria-label="Limpar busca" hidden>&times;</button>
+      <div id="resultados-busca" class="resultados-busca" hidden></div>
+    </div>
+    <nav aria-label="Navegação principal">
       <ul class="nav-links">
-        <li><a href="#">Mapa</a></li>
-        <li><a href="#">Sobre</a></li>
-        <li><a href="#">Portfolio</a></li>
-        <li><a href="#">Contact</a></li>
+        <li><button id="abrir-sobre" class="botao-sobre" type="button" aria-haspopup="dialog" aria-controls="dialogo-sobre">Sobre</button></li>
       </ul>
     </nav>
   </header>
@@ -42,6 +47,26 @@
 
     <div class="area-mapa">
       <svg id="mapa" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa ilustrado do campus UNIPÊ"></svg>
+      <aside id="painel-locais" class="painel-locais" aria-label="Lista de locais do campus">
+        <div class="painel-locais-topo"><span id="titulo-lista-locais"></span><button type="button" id="btn-fechar-locais" aria-label="Fechar lista de locais">&times;</button></div>
+        <div class="filtros-categoria" aria-label="Filtrar locais por categoria">
+          <button type="button" class="chip-categoria ativo" data-cat="todos" aria-pressed="true">Todos</button>
+          <button type="button" class="chip-categoria" data-cat="academico" aria-pressed="false">Blocos &amp; Salas</button>
+          <button type="button" class="chip-categoria" data-cat="clinicas" aria-pressed="false">Clínicas &amp; Labs</button>
+          <button type="button" class="chip-categoria" data-cat="vivencia" aria-pressed="false">Vivência &amp; Adm</button>
+          <button type="button" class="chip-categoria" data-cat="esportes" aria-pressed="false">Esportes &amp; Acesso</button>
+        </div>
+        <ul id="lista-locais" class="lista-locais"></ul>
+      </aside>
+      <button type="button" id="btn-locais-toggle" class="btn-locais-toggle" aria-controls="painel-locais" aria-expanded="true">☷ <span>Locais</span></button>
+      <div class="controles-mapa" role="group" aria-label="Controles de visualização do mapa">
+        <button type="button" id="btn-modo-quadras" class="btn-controle-texto" aria-pressed="false">Cores das Quadras</button>
+        <button type="button" id="btn-rotulos" class="btn-controle-texto ativo" aria-pressed="true">Siglas</button>
+        <button type="button" id="btn-reset" aria-label="Restaurar visão do mapa" title="Restaurar visão do mapa">&#8635;</button>
+        <button type="button" id="btn-zoom-out" aria-label="Diminuir zoom">&minus;</button>
+        <input type="range" id="slider-zoom" min="1" max="8" step="0.1" value="1" aria-label="Nível de zoom">
+        <button type="button" id="btn-zoom-in" aria-label="Aumentar zoom">+</button>
+      </div>
       <aside id="painel-local" class="painel-local" aria-labelledby="local-titulo" hidden>
         <div class="painel-cabecalho">
           <button id="fechar-painel" class="fechar-painel" type="button" aria-label="Fechar informações">×</button>
@@ -65,6 +90,28 @@
       </aside>
     </div>
   </main>
+
+  <dialog id="dialogo-sobre" class="dialogo-sobre" aria-labelledby="sobre-titulo">
+    <div class="sobre-cabecalho">
+      <div><span class="sobre-identificacao">LOCALIZA UNIPÊ</span><h2 id="sobre-titulo">Sobre o projeto</h2></div>
+      <button id="fechar-sobre" class="fechar-sobre" type="button" aria-label="Fechar informações sobre o projeto">&times;</button>
+    </div>
+    <div class="sobre-conteudo">
+      <p>O Localiza Unipê é um mapa interativo do campus, criado para ajudar estudantes e visitantes a encontrar blocos, setores e serviços da instituição.</p>
+      <h3>Como foi feito</h3>
+      <p>O projeto foi desenvolvido como uma aplicação web front-end. Os dados e a geometria do campus foram organizados para criar um mapa ilustrado e interativo, com busca, informações dos locais e controles de visualização.</p>
+      <h3>Tecnologias utilizadas</h3>
+      <p>HTML para a estrutura, CSS para a aparência e JavaScript para as interações. O mapa é desenhado em SVG, e o Git e o GitHub são usados no controle de versão do projeto.</p>
+      <h3>Responsáveis</h3>
+      <ul class="sobre-equipe">
+        <li>Marcelo Felix Araujo</li>
+        <li>Afonso Michel Silva Pereira</li>
+        <li>Júlio César Dos Anjos</li>
+        <li>Naassom Do Nascimento Melo</li>
+        <li>Cirilo Leandro Venancio</li>
+      </ul>
+    </div>
+  </dialog>
 
   <!-- Arquivos JavaScript separados do projeto. -->
   <script src="campus-data.js"></script>
