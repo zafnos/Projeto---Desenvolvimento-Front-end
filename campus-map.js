@@ -972,16 +972,15 @@
   }
 
   // ---------- arrastar / zoom (sem nenhum controle visível) ----------
-  // Durante o gesto o SVG NÃO é redesenhado: só aplicamos um CSS transform (a GPU move a imagem pronta).
-  // Quando o gesto para (~150 ms), gravamos o viewBox novo e o SVG é redesenhado uma única vez, nítido.
+  // Atualiza a câmera sem deslocar o elemento SVG, mantendo o mapa cobrindo a área visível.
   function panZoom(svg, vb0, ativo, onZoom) {
-    let vb = vb0.slice(), alvo = vb0.slice(), rect = null, timer = 0, raf = 0, anim = 0, arrastou = false;
+    let alvo = vb0.slice(), rect = null, raf = 0, anim = 0, arrastou = false;
     const wrap = svg.parentNode;
     const getNivel = () => Math.max(1, Math.min(8, +(vb0[2] / alvo[2]).toFixed(2)));
     const notifyZoom = () => { if (onZoom) onZoom(getNivel()); };
     if (ativo === false) return { arrastou: () => false, resetar() {}, focar(x, y, w) { const h = w * vb0[3] / vb0[2]; svg.setAttribute('viewBox', [x - w / 2, y - h / 2, w, h].map(fx).join(' ')); }, zoomCentro() {}, setNivel() {}, getNivel };
     if (wrap && wrap.style) { if (getComputedStyle(wrap).overflow === 'visible') wrap.style.overflow = 'hidden'; if (!wrap.style.background) wrap.style.background = PAL.neblina; }
-    svg.style.transformOrigin = '0 0'; svg.style.willChange = 'transform'; svg.style.touchAction = 'none';
+    svg.style.touchAction = 'none';
     const base = () => rect || (rect = svg.getBoundingClientRect());
     const upp = v => { const r = base(); return Math.max(v[2] / r.width, v[3] / r.height); };
     // limite de zoom out: a área visível (já contando a proporção da tela) nunca passa da área do campus (vb0)
@@ -998,14 +997,10 @@
     };
     const inicio = () => { const w = limW(vb0[2]), h = w * vb0[3] / vb0[2]; return [vb0[0] + (vb0[2] - w) / 2, vb0[1] + (vb0[3] - h) / 2, w, h]; };
     const toSvg = (cx, cy) => { const r = base(), s = upp(alvo); return [alvo[0] + (cx - r.left - (r.width - alvo[2] / s) / 2) * s, alvo[1] + (cy - r.top - (r.height - alvo[3] / s) / 2) * s]; };
-    const confirmar = () => { timer = 0; vb = alvo.slice(); svg.setAttribute('viewBox', vb.map(fx).join(' ')); svg.style.transform = ''; rect = null; notifyZoom(); };
+    const confirmar = () => { svg.setAttribute('viewBox', alvo.map(fx).join(' ')); notifyZoom(); };
     const mostrar = () => {
       raf = 0;
-      const r = base(), s0 = upp(vb), s1 = upp(alvo), a = s0 / s1;
-      const ox = (r.width - vb[2] / s0) / 2, oy = (r.height - vb[3] / s0) / 2;
-      svg.style.transform = `translate(${(ox * (1 - a) + (vb[0] - alvo[0]) / s1).toFixed(2)}px,${(oy * (1 - a) + (vb[1] - alvo[1]) / s1).toFixed(2)}px) scale(${a.toFixed(5)})`;
-      notifyZoom();
-      clearTimeout(timer); timer = setTimeout(confirmar, 150);
+      confirmar();
     };
     const agendar = () => { if (!raf) raf = requestAnimationFrame(mostrar); };
     const zoom = (f, cx, cy) => {
