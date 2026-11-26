@@ -258,20 +258,6 @@ body {
 .painel-conteudo section p { margin: 0; font-size: 14px; line-height: 1.55; }
 .local-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .local-etiquetas li { padding: 5px 8px; border: 1px solid #d8e0eb; border-radius: 4px; background: #f2f5f9; font-size: 13px; }
-.rodape {
-  flex: 0 0 auto;
-  min-height: 48px;
-  padding: 6px 12px;
-  border-top: 3px solid #040404;
-  background: linear-gradient(90deg, #02070A, #0297DE, #FFEA00);
-  color: #fff;
-  text-align: center;
-  font-size: 11px;
-}
-
-.rodape p {
-  margin: 2px 0;
-}
 
 @media (max-width: 600px) {
   .cabecalho {
